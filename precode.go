@@ -104,11 +104,8 @@ func main() {
 	r.Use(middleware.Logger)
 
 	r.Get("/tasks", getAllTasks)
-
 	r.Post("/tasks", postTask)
-
 	r.Get("/tasks/{id}", getTaskByID)
-
 	r.Delete("/tasks/{id}", deleteTask)
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
