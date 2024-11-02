@@ -48,22 +48,27 @@ func getAllTasks(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func postTask(w http.ResponseWriter, r *http.Request) {
+func handlePostTask(w http.ResponseWriter, r *http.Request) {
+	if err := postTask(w, r); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func postTask(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "application/json")
 
 	var newTask Task
 	if err := json.NewDecoder(r.Body).Decode(&newTask); err != nil {
-		http.Error(w, "Неверный запрос", http.StatusBadRequest)
-		return
+		return fmt.Errorf("Неверный запрос: %v", http.StatusBadRequest)
 	}
 
 	if _, exists := tasks[newTask.ID]; exists {
-		http.Error(w, "Задача с таким ID уже существует", http.StatusBadRequest)
-		return
+		return fmt.Errorf("Задача с таким ID уже существует", http.StatusBadRequest)
 	}
 
 	tasks[newTask.ID] = newTask
 	w.WriteHeader(http.StatusCreated)
+	return nil
 }
 
 func getTaskByID(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +109,7 @@ func main() {
 	r.Use(middleware.Logger)
 
 	r.Get("/tasks", getAllTasks)
-	r.Post("/tasks", postTask)
+	r.Post("/tasks", handlePostTask)
 	r.Get("/tasks/{id}", getTaskByID)
 	r.Delete("/tasks/{id}", deleteTask)
 
